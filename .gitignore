@@ -24,3 +24,6 @@ data/ukdale
 *.tar
 *.dat
 
+# Ignoring outputs
+log.txt
+nohup.out

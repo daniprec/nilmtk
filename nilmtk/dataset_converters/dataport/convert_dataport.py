@@ -43,7 +43,7 @@ def convert_dataport(input_path, hdf_filename,
     check_directory_exists(input_path)
     # List csv files in directory
     # We will only use the ones of 1Hz frequency
-    files = [f for f in listdir(input_path) if isfile(join(input_path, f)) and
+    files = [f for f in os.listdir(input_path) if isfile(join(input_path, f)) and
              '.csv' in f and '.gz' not in f and '1s' in f]
     # Sorting Lexicographically
     files.sort()
@@ -64,6 +64,7 @@ def convert_dataport(input_path, hdf_filename,
     metadata_dir = join(tmp_dir, 'metadata')
     shutil.copytree(original_metadata_dir, metadata_dir)
     print("Using temporary dir for metadata:", metadata_dir)
+    sys.stdout.flush()
 
     for f in os.listdir(metadata_dir):
         if re.search('^building', f):
@@ -81,6 +82,8 @@ def convert_dataport(input_path, hdf_filename,
     # Iterate through all the csv files
     # Export a csv for each individual building
     for file in files:
+        print(f"Splitting file {file} into individual buildings csv")
+        sys.stdout.flush()
         # Load the csv as an iterator over a dataframe
         file_path = input_path + "/" + file
         data_iter = pd.read_csv(file_path, header=0, chunksize=1)
@@ -97,6 +100,8 @@ def convert_dataport(input_path, hdf_filename,
                 # If it doesn't exist, create new csv
                 row.to_csv(path_csv, index=False)
     
+    print("Done building exportation to csv")
+    sys.stdout.flush()
     # Initialize nilmtk building id (it requires to start at 1)
     nilmtk_building_id = 0
     
@@ -131,3 +136,11 @@ def convert_dataport(input_path, hdf_filename,
 
     # remote the temporary dir when finished
     shutil.rmtree(tmp_dir)
+    print("hdf5 done. Execution ended")
+
+    
+if __name__ == "__main__":
+    path_project = os.path.dirname(os.path.realpath(__file__)).rsplit('/', 4)[0]
+    path_data = f"{path_project}/nilm/data/"
+    convert_dataport(f"{path_data}dataport", f"{path_data}nilmtk/dataport.h5")
+    
